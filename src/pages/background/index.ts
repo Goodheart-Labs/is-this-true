@@ -1,3 +1,5 @@
+import { truth } from "./lib";
+
 console.log("background script loaded");
 
 // Create context menu item when extension is installed
@@ -27,16 +29,16 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 // Handle fact-checking requests from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "PROCESS_FACT_CHECK") {
-    const { title, url, text } = message.data;
-    console.log("Processing fact check:", { title, url, text });
+    const pageInfo = message.data;
+    console.log("Processing fact check:", pageInfo);
 
-    // For now, just simulate a response after 2 seconds
-    setTimeout(() => {
+    // Call our truth function and send back the result
+    truth(pageInfo).then((result) => {
+      console.log("Fact check result:", result);
       sendResponse({
-        result:
-          "This is a placeholder response. The actual fact-checking implementation will be added later.",
+        result: JSON.stringify(result, null, 2),
       });
-    }, 2000);
+    });
 
     // Return true to indicate we will send a response asynchronously
     return true;

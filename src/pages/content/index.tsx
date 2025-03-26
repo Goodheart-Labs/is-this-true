@@ -27,10 +27,7 @@ const App: React.FC = () => {
         chrome.runtime.sendMessage(
           { type: "PROCESS_FACT_CHECK", data: pageInfo },
           (response) => {
-            // Simulate a delay for now
-            setTimeout(() => {
-              setResult(response?.result || "No result available");
-            }, 2000);
+            setResult(response?.result || "No result available");
           }
         );
       }

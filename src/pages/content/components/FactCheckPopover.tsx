@@ -26,7 +26,7 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
 
   return (
     <div
-      className={`fixed bottom-8 right-8 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 transform ${
+      className={`fixed bottom-8 right-8 w-96 bg-white rounded-lg shadow-xl border border-gray-200 transition-all duration-300 transform z-[2147483647] ${
         isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
     >
@@ -34,7 +34,10 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
         <h3 className="text-lg font-semibold text-white">Fact Check Results</h3>
       </div>
 
-      <div className="p-4">
+      <div
+        className="p-4 overflow-auto"
+        style={{ maxHeight: "calc(100dvh - 6rem)" }}
+      >
         <div className="mb-4">
           <p className="text-sm text-gray-500 mb-1">Selected text:</p>
           <p className="text-sm text-gray-700 italic">
