@@ -1,0 +1,2 @@
+fact-checking-extension
+This project is a Chrome extension that allows users to highlight text on any webpage and quickly check its accuracy through a right-click menu option. It provides a concise truth assessment using AI-generated responses, including contextual insights when available. The goal is to offer a seamless, low-friction way for users to verify claims without leaving the page they’re reading.
