@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { sanitizeTitle } from "../helpers";
 
 interface FactCheckPopoverProps {
   selectedText: string;
@@ -65,13 +66,13 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
   return (
     <div className={`fact-check-popover ${isVisible ? "visible" : ""}`}>
       <div className="fact-check-header">
-        <h3 className="fact-check-title">Fact Check Results</h3>
+        <h3 className="fact-check-title">Is this true?</h3>
       </div>
 
       <div className="fact-check-content">
-        <div className="fact-check-selected-text">
-          {selectedText.length > 150
-            ? `${selectedText.substring(0, 150)}...`
+        <div className="fact-check-selected-text line-clamp-3">
+          {selectedText.length > 250
+            ? `${selectedText.substring(0, 250)}...`
             : selectedText}
         </div>
 
@@ -139,13 +140,13 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
                 className="fact-check-accuracy"
                 data-accuracy={parsedResult.accuracy}
               >
-                {parsedResult.accuracy}
+                {sanitizeTitle(parsedResult.accuracy)}
               </div>
             </div>
             <div
               className="fact-check-explanation"
               dangerouslySetInnerHTML={{
-                __html: parsedResult.explanation.replace(
+                __html: sanitizeTitle(parsedResult.explanation).replace(
                   /\*\*(.*?)\*\*/g,
                   "<strong>$1</strong>"
                 ),

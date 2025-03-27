@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Fact Check This",
+  "name": "Is this true?",
   "description": "Quickly verify the accuracy of highlighted text on any webpage",
   "background": {
     "service_worker": "src/pages/background/index.ts",

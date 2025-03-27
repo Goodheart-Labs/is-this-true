@@ -6,7 +6,7 @@ console.log("background script loaded");
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "factCheckSelection",
-    title: "Fact Check This",
+    title: "Is this true?",
     contexts: ["selection"],
   });
 });
