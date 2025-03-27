@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+      VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+      VITE_PUBLIC_POSTHOG_HOST: ${{ secrets.VITE_PUBLIC_POSTHOG_HOST }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -25,6 +29,10 @@ jobs:
 
       - name: Build Chrome extension
         run: bun run build:chrome
+        env:
+          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+          VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+          VITE_PUBLIC_POSTHOG_HOST: ${{ secrets.VITE_PUBLIC_POSTHOG_HOST }}
 
       - name: Create zip file
         run: cd dist_chrome && zip -r ../extension.chrome.zip .
@@ -43,6 +51,33 @@ jobs:
             🧪 Automated beta release from latest main branch commit.
 
             This is an automated beta release for testing purposes. Install this version by:
+            1. Download the extension.chrome.zip file
+            2. Go to chrome://extensions/
+            3. Enable "Developer mode"
+            4. Drag and drop the zip file into the extensions page
+
+            Commit: ${{ github.sha }}
+          files: extension.chrome.zip
+          prerelease: true
+
+      - name: Move latest tag
+        run: |
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+          git tag -a latest -m "Latest beta release"
+          git push origin latest
+
+      - name: Update latest release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: Latest Beta Release
+          body: |
+            🧪 This is always the latest beta release from the main branch.
+
+            This release points to the same build as ${{ steps.tag.outputs.tag }}.
+
+            Install this version by:
             1. Download the extension.chrome.zip file
             2. Go to chrome://extensions/
             3. Enable "Developer mode"
