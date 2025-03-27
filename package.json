@@ -19,6 +19,7 @@
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^0.4.3",
     "ai": "^4.2.5",
+    "posthog-js": "^1.233.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "webextension-polyfill": "^0.12.0",

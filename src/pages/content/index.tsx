@@ -1,7 +1,13 @@
 import { createRoot } from "react-dom/client";
 import React, { useState, useEffect } from "react";
 import FactCheckPopover from "./components/FactCheckPopover";
+
 import styles from "./style.css?inline"; // Import CSS as a string using Vite's `?inline` flag
+import { initPostHog, getPostHog } from "./posthog";
+
+const options = {
+  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+};
 
 const App: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -36,7 +42,19 @@ const App: React.FC = () => {
         chrome.runtime.sendMessage(
           { type: "PROCESS_FACT_CHECK", data: pageInfo },
           (response) => {
-            setResult(response?.result || "No result available");
+            const result = response?.result || "No result available";
+            setResult(result);
+
+            const posthog = getPostHog();
+
+            // Track the fact check event with both request and response data
+            posthog?.capture("fact_check_completed", {
+              request_text: pageInfo.text,
+              page_title: pageInfo.title,
+              page_url: pageInfo.url,
+              response: result,
+              timestamp: new Date().toISOString(),
+            });
           }
         );
       }
@@ -60,6 +78,14 @@ const App: React.FC = () => {
   );
 };
 
+function AppWithProviders() {
+  useEffect(() => {
+    initPostHog();
+  }, []);
+
+  return <App />;
+}
+
 // Create Shadow DOM container
 const shadowHost = document.createElement("div");
 document.body.appendChild(shadowHost);
@@ -76,4 +102,4 @@ shadowRoot.appendChild(mountPoint);
 
 // Render React app inside Shadow DOM
 const root = createRoot(mountPoint);
-root.render(<App />);
+root.render(<AppWithProviders />);
