@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import React, { useState, useEffect } from "react";
 import FactCheckPopover from "./components/FactCheckPopover";
-import "./style.css";
+import styles from "./style.css?inline"; // Import CSS as a string using Vite's `?inline` flag
 
 const App: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,12 +18,10 @@ const App: React.FC = () => {
           text: message.text,
         };
 
-        // Update UI state
         setSelectedText(message.text);
         setIsVisible(true);
         setResult(null);
 
-        // Send to background script for processing
         chrome.runtime.sendMessage(
           { type: "PROCESS_FACT_CHECK", data: pageInfo },
           (response) => {
@@ -35,11 +33,10 @@ const App: React.FC = () => {
 
     chrome.runtime.onMessage.addListener(messageListener);
 
-    // Cleanup listener on unmount
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
     };
-  }, []); // Empty dependency array since we don't use any external values
+  }, []);
 
   return (
     <FactCheckPopover
@@ -50,29 +47,20 @@ const App: React.FC = () => {
   );
 };
 
-// Create root element
-const div = document.createElement("div");
-div.id = "__fact_check_root";
-document.body.appendChild(div);
+// Create Shadow DOM container
+const shadowHost = document.createElement("div");
+document.body.appendChild(shadowHost);
+const shadowRoot = shadowHost.attachShadow({ mode: "open" });
 
-// Render the app
-const rootContainer = document.querySelector("#__fact_check_root");
-if (!rootContainer) throw new Error("Can't find Content root element");
-const root = createRoot(rootContainer);
+// Inject styles inside Shadow DOM
+const style = document.createElement("style");
+style.textContent = styles;
+shadowRoot.appendChild(style);
+
+// Create mount point inside Shadow DOM
+const mountPoint = document.createElement("div");
+shadowRoot.appendChild(mountPoint);
+
+// Render React app inside Shadow DOM
+const root = createRoot(mountPoint);
 root.render(<App />);
-
-// Create a reference to our React component's setState functions
-let setIsVisibleRef: (value: boolean) => void;
-let setSelectedTextRef: (value: string) => void;
-let setResultRef: (value: string | null) => void;
-
-// Function to update the references
-export function setStateRefs(
-  setIsVisible: (value: boolean) => void,
-  setSelectedText: (value: string) => void,
-  setResult: (value: string | null) => void
-) {
-  setIsVisibleRef = setIsVisible;
-  setSelectedTextRef = setSelectedText;
-  setResultRef = setResult;
-}
