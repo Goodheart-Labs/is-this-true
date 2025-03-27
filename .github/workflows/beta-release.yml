@@ -1,0 +1,53 @@
+name: Create Beta Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-beta-release:
+    name: Create Beta Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Chrome extension
+        run: bun run build:chrome
+
+      - name: Create zip file
+        run: cd dist_chrome && zip -r ../extension.chrome.zip .
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "tag=beta-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Beta Release ${{ steps.tag.outputs.tag }}
+          body: |
+            🧪 Automated beta release from latest main branch commit.
+
+            This is an automated beta release for testing purposes. Install this version by:
+            1. Download the extension.chrome.zip file
+            2. Go to chrome://extensions/
+            3. Enable "Developer mode"
+            4. Drag and drop the zip file into the extensions page
+
+            Commit: ${{ github.sha }}
+          files: extension.chrome.zip
+          prerelease: true
