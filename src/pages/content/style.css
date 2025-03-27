@@ -4,7 +4,7 @@
   --fc-font-family: sans-serif;
   --fc-background: #f8f9fa;
   --fc-text-primary: #1a1a1a;
-  --fc-text-secondary: #4b5563;
+  --fc-text-secondary: #596068;
   --fc-border: #e2e8f0;
   --fc-shadow: 0 8px 16px rgb(0 0 0 / 0.08), 0 2px 4px rgb(0 0 0 / 0.04);
   --fc-radius: 14px;
@@ -23,7 +23,6 @@
   background: var(--fc-background);
   border-radius: var(--fc-radius);
   box-shadow: var(--fc-shadow);
-  border: 1px solid var(--fc-border);
   width: 480px;
   max-width: calc(100vw - 2rem);
   position: fixed;
@@ -34,6 +33,7 @@
   transform: translateY(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: -0.011em;
+  @apply antialiased;
 }
 
 .fact-check-popover.visible {
@@ -43,10 +43,12 @@
 
 .fact-check-header {
   padding: 0.875rem var(--fc-spacing);
-  border-bottom: 1px solid var(--fc-border);
   background: var(--fc-header-bg);
   border-top-left-radius: var(--fc-radius);
   border-top-right-radius: var(--fc-radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .fact-check-title {
@@ -63,12 +65,18 @@
   background: white;
   border-bottom-left-radius: var(--fc-radius);
   border-bottom-right-radius: var(--fc-radius);
+  border: 3px solid var(--fc-header-bg);
+  border-top: none;
 }
 
 .fact-check-selected-text {
+  margin-left: calc(-1 * var(--fc-spacing));
+  margin-right: calc(-1 * var(--fc-spacing));
+  margin-top: calc(-1 * var(--fc-spacing));
+  margin-bottom: 1rem;
+  padding: 16px 24px;
   font-size: 0.8125rem;
   color: var(--fc-text-secondary);
-  margin-bottom: 1rem;
   font-style: italic;
   line-height: 1.4;
   padding: 0.75rem;
@@ -120,6 +128,7 @@
   margin-top: 0.75rem;
   font-size: 0.925rem;
   line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
 .fact-check-explanation strong {
@@ -154,7 +163,7 @@
   color: var(--fc-neutral-color);
   text-decoration: none;
   display: block;
-  padding: 0.5rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   line-height: 1.4;
   transition: all 0.2s ease;
   border-radius: 6px;
@@ -240,4 +249,25 @@
   font-size: 0.875rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.fact-check-close-button {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.fact-check-close-button:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fact-check-close-button svg {
+  width: 20px;
+  height: 20px;
 }

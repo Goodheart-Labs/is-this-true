@@ -8,6 +8,16 @@ const App: React.FC = () => {
   const [selectedText, setSelectedText] = useState("");
   const [result, setResult] = useState<string | null>(null);
 
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+
+  const handleAnimationComplete = () => {
+    // Reset state after animation completes
+    setSelectedText("");
+    setResult(null);
+  };
+
   useEffect(() => {
     // Listen for messages from the background script
     const messageListener = (message: any) => {
@@ -18,9 +28,10 @@ const App: React.FC = () => {
           text: message.text,
         };
 
+        // Reset state for new fact check
+        setResult(null);
         setSelectedText(message.text);
         setIsVisible(true);
-        setResult(null);
 
         chrome.runtime.sendMessage(
           { type: "PROCESS_FACT_CHECK", data: pageInfo },
@@ -43,6 +54,8 @@ const App: React.FC = () => {
       isVisible={isVisible}
       selectedText={selectedText}
       result={result}
+      onClose={handleClose}
+      onAnimationComplete={handleAnimationComplete}
     />
   );
 };
