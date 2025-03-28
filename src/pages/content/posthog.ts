@@ -14,6 +14,10 @@ export function initPostHog() {
     {
       api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
       persistence: "localStorage",
+      autocapture: false,
+      capture_pageview: false,
+      capture_pageleave: false,
+      disable_session_recording: true,
     }
   );
 }
