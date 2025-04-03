@@ -15,16 +15,20 @@ const App: React.FC = () => {
   const [selectedText, setSelectedText] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [factCheckId, setFactCheckId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     setIsVisible(false);
   };
 
   const handleAnimationComplete = () => {
-    // Reset state after animation completes
-    setSelectedText("");
-    setResult(null);
-    setFactCheckId(null);
+    // Only reset state when the popover is actually closing
+    if (!isVisible) {
+      setSelectedText("");
+      setResult(null);
+      setFactCheckId(null);
+      setError(null);
+    }
   };
 
   useEffect(() => {
@@ -41,11 +45,17 @@ const App: React.FC = () => {
         setResult(null);
         setSelectedText(message.text);
         setFactCheckId(null);
+        setError(null);
         setIsVisible(true);
 
         chrome.runtime.sendMessage(
           { type: "PROCESS_FACT_CHECK", data: pageInfo },
           (response) => {
+            if (response?.error) {
+              setError(response.error);
+              return;
+            }
+
             const result = response?.result || "No result available";
             setResult(result);
 
@@ -75,6 +85,7 @@ const App: React.FC = () => {
       isVisible={isVisible}
       selectedText={selectedText}
       result={result}
+      error={error}
       factCheckId={factCheckId}
       onClose={handleClose}
       onAnimationComplete={handleAnimationComplete}

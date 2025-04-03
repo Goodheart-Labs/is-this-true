@@ -1,4 +1,5 @@
 import { truth } from "./lib";
+import { checkRateLimit } from "./ratelimit";
 
 console.log("background script loaded");
 
@@ -32,12 +33,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const pageInfo = message.data;
     console.log("Processing fact check:", pageInfo);
 
-    // Call our truth function and send back the result
-    truth(pageInfo).then((result) => {
-      console.log("Fact check result:", result);
-      sendResponse({
-        result: JSON.stringify(result, null, 2),
-      });
+    // Check rate limit before processing
+    checkRateLimit().then(async (isAllowed) => {
+      if (!isAllowed) {
+        sendResponse({
+          error:
+            "Limit reached. Need more? <a href='https://x.com/NathanpmYoung'>@NathanpmYoung</a> on X",
+        });
+        return;
+      }
+
+      // If within rate limit, proceed with fact checking
+      try {
+        const result = await truth(pageInfo);
+        console.log("Fact check result:", result);
+        sendResponse({
+          result: JSON.stringify(result, null, 2),
+        });
+      } catch (error) {
+        console.error("Fact check error:", error);
+        sendResponse({
+          error: "An error occurred while fact checking.",
+        });
+      }
     });
 
     // Return true to indicate we will send a response asynchronously

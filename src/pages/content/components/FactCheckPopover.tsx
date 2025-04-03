@@ -12,6 +12,7 @@ interface FactCheckPopoverProps {
   selectedText: string;
   isVisible: boolean;
   result?: string | null;
+  error?: string | null;
   factCheckId: string | null;
   onClose: () => void;
   onAnimationComplete: () => void;
@@ -160,7 +161,6 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ factCheckId }) => {
     if (!submittedFeedback) {
       trackPositiveFeedback(factCheckId);
       setSubmittedFeedback("positive");
-      setShowSuccessNotification(true);
     }
   };
 
@@ -168,7 +168,6 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ factCheckId }) => {
     if (!submittedFeedback) {
       trackNegativeFeedback(factCheckId);
       setSubmittedFeedback("negative");
-      setShowSuccessNotification(true);
     }
   };
 
@@ -179,6 +178,7 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ factCheckId }) => {
       timestamp: new Date().toISOString(),
     });
     setShowSuccessNotification(true);
+    setTimeout(() => setShowSuccessNotification(false), 2000);
   };
 
   return (
@@ -234,12 +234,16 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
   selectedText,
   isVisible,
   result,
+  error,
   factCheckId,
   onClose,
   onAnimationComplete,
 }) => {
   const [show, setShow] = useState(false);
-  const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null);
+  const parsedResult = result ? (JSON.parse(result) as ParsedResult) : null;
+  const successResult = parsedResult?.success
+    ? (parsedResult as FactCheckResult)
+    : null;
 
   useEffect(() => {
     if (isVisible) {
@@ -253,34 +257,16 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
     }
   }, [isVisible, onAnimationComplete]);
 
-  useEffect(() => {
-    if (result) {
-      try {
-        setParsedResult(JSON.parse(result));
-      } catch (e) {
-        console.error("Failed to parse fact check result:", e);
-        setParsedResult({
-          success: false,
-          error: "Failed to parse the result",
-          details: e instanceof Error ? e.message : String(e),
-        });
-      }
-    } else {
-      setParsedResult(null);
-    }
-  }, [result]);
-
   if (!show) return null;
 
   return (
-    <div className={`fact-check-popover ${isVisible ? "visible" : ""}`}>
+    <div
+      className={`fact-check-popover ${isVisible ? "visible" : ""}`}
+      onAnimationEnd={onAnimationComplete}
+    >
       <div className="fact-check-header">
-        <h3 className="fact-check-title">Is this true?</h3>
-        <button
-          onClick={onClose}
-          className="fact-check-close-button"
-          aria-label="Close"
-        >
+        <h2 className="fact-check-title">Fact Check</h2>
+        <button onClick={onClose} className="fact-check-close-button">
           <svg
             width="24"
             height="24"
@@ -295,15 +281,32 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
           </svg>
         </button>
       </div>
-
       <div className="fact-check-content">
         <div className="fact-check-selected-text line-clamp-3">
           {selectedText.length > 250
             ? `${selectedText.substring(0, 250)}...`
             : selectedText}
         </div>
-
-        {!parsedResult ? (
+        {error ? (
+          <div className="fact-check-error">
+            <svg
+              className="fact-check-error-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z"
+                fill="currentColor"
+              />
+            </svg>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: error,
+              }}
+            />
+          </div>
+        ) : !parsedResult ? (
           <div className="fact-check-loading">
             <svg
               className="fact-check-loading-spinner"
@@ -361,45 +364,56 @@ const FactCheckPopover: React.FC<FactCheckPopoverProps> = ({
             )}
           </div>
         ) : (
-          <div className="fact-check-result">
-            <div className="fact-check-result-header">
-              <div
-                className="fact-check-accuracy"
-                data-accuracy={parsedResult.accuracy}
-              >
-                {sanitizeTitle(parsedResult.accuracy)}
-              </div>
+          <>
+            <div className="fact-check-result">
+              {successResult && (
+                <>
+                  <div className="fact-check-result-header">
+                    <div
+                      className="fact-check-accuracy"
+                      data-accuracy={successResult.accuracy}
+                    >
+                      {sanitizeTitle(successResult.accuracy)}
+                    </div>
+                  </div>
+                  <div
+                    className="fact-check-explanation"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeTitle(successResult.explanation).replace(
+                        /\*\*(.*?)\*\*/g,
+                        "<strong>$1</strong>"
+                      ),
+                    }}
+                  />
+                  {successResult.citations &&
+                    successResult.citations.length > 0 && (
+                      <div className="fact-check-citations">
+                        <div className="fact-check-citations-title">
+                          Sources
+                        </div>
+                        <ul className="fact-check-citations-list">
+                          {successResult.citations.map(
+                            (citation: string, index: number) => (
+                              <li key={index}>
+                                <a
+                                  href={citation}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="fact-check-citation overflow-hidden text-ellipsis"
+                                >
+                                  {citation}
+                                </a>
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                </>
+              )}
             </div>
-            <div
-              className="fact-check-explanation"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeTitle(parsedResult.explanation).replace(
-                  /\*\*(.*?)\*\*/g,
-                  "<strong>$1</strong>"
-                ),
-              }}
-            />
-            {parsedResult.citations && parsedResult.citations.length > 0 && (
-              <div className="fact-check-citations">
-                <div className="fact-check-citations-title">Sources</div>
-                <ul className="fact-check-citations-list">
-                  {parsedResult.citations.map((citation, index) => (
-                    <li key={index}>
-                      <a
-                        href={citation}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="fact-check-citation overflow-hidden text-ellipsis"
-                      >
-                        {citation}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
             {factCheckId && <FeedbackButtons factCheckId={factCheckId} />}
-          </div>
+          </>
         )}
       </div>
     </div>
