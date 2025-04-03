@@ -1,9 +1,10 @@
 import { createRoot } from "react-dom/client";
 import React, { useState, useEffect } from "react";
 import FactCheckPopover from "./components/FactCheckPopover";
+import { initPostHog } from "./posthog";
+import { trackFactCheckCompleted } from "./analytics";
 
 import styles from "./style.css?inline"; // Import CSS as a string using Vite's `?inline` flag
-import { initPostHog, getPostHog } from "./posthog";
 
 const options = {
   api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
@@ -13,6 +14,7 @@ const App: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [result, setResult] = useState<string | null>(null);
+  const [factCheckId, setFactCheckId] = useState<string | null>(null);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -22,6 +24,7 @@ const App: React.FC = () => {
     // Reset state after animation completes
     setSelectedText("");
     setResult(null);
+    setFactCheckId(null);
   };
 
   useEffect(() => {
@@ -37,6 +40,7 @@ const App: React.FC = () => {
         // Reset state for new fact check
         setResult(null);
         setSelectedText(message.text);
+        setFactCheckId(null);
         setIsVisible(true);
 
         chrome.runtime.sendMessage(
@@ -45,16 +49,15 @@ const App: React.FC = () => {
             const result = response?.result || "No result available";
             setResult(result);
 
-            const posthog = getPostHog();
-
-            // Track the fact check event with both request and response data
-            posthog?.capture("fact_check_completed", {
-              request_text: pageInfo.text,
-              page_title: pageInfo.title,
-              page_url: pageInfo.url,
+            // Track the fact check event and store the ID
+            const id = trackFactCheckCompleted({
+              requestText: pageInfo.text,
+              pageTitle: pageInfo.title,
+              pageUrl: pageInfo.url,
               response: result,
               timestamp: new Date().toISOString(),
             });
+            setFactCheckId(id);
           }
         );
       }
@@ -72,6 +75,7 @@ const App: React.FC = () => {
       isVisible={isVisible}
       selectedText={selectedText}
       result={result}
+      factCheckId={factCheckId}
       onClose={handleClose}
       onAnimationComplete={handleAnimationComplete}
     />
