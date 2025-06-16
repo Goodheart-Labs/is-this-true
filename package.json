@@ -17,7 +17,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@openrouter/ai-sdk-provider": "^0.4.3",
+    "@openrouter/ai-sdk-provider": "^0.7.2",
     "ai": "^4.2.5",
     "nanoid": "^5.1.5",
     "posthog-js": "^1.233.1",
